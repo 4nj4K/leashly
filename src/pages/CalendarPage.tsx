@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { members, type Walk } from "../data/mockData";
 import DayRing from "../components/DayRing";
 
@@ -13,13 +13,14 @@ function toKey(year: number, month: number, day: number) {
     return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-export default function CalendarPage({walks}: {walks: Walk[]}) {
+export default function CalendarPage({walks, onDelete}: {walks: Walk[]; onDelete: (id: number) => void }) {
     const today = new Date();
     const [year, setYear] = useState(today.getFullYear());
     const [month, setMonth] = useState(today.getMonth());
     const [selected, setSelected] = useState(
-toKey(today.getFullYear(), today.getMonth(), today.getDate())
+        toKey(today.getFullYear(), today.getMonth(), today.getDate())
     );
+    const [confirmId, setConfirmId] = useState<number | null>(null);
 
 
 const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -100,7 +101,10 @@ return (
                     day={day}
                     colors={colorsForDay(day)}
                     isSelected={selected === toKey(year, month, day)}
-                    onClick={() => setSelected(toKey(year, month, day))}
+                    onClick={() => {
+                        setSelected(toKey(year, month, day));
+                        setConfirmId(null);
+                    }}
                 />
             ))}
         </div>
@@ -118,15 +122,33 @@ return (
             {selectedWalks.length === 0 && (
                 <p className="text-sm text-muted">Ingen har gått med Bobby den här dagen.</p>
             )}
-            {selectedWalks.map((walk) => {
-                const member = members.find((m) => m.id === walk.memberId);
+            {selectedWalks.map((walk) => { 
+                const member = members.find((m) => m.id === walk.memberId); 
+                const confirming = confirmId === walk.id; 
                 return (
-                    <div key={walk.id} className="flex justify-between items-center text-sm">
-                        <span className="flex items-center gap-3">
-                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: `var(--${member?.color})`}}/>
-                            {member?.name}
+                    <div key={walk.id} className="flex justify-between items-center text-sm"> 
+                        <span className="flex items-center gap-3"> 
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: `var(--${member?.color})` }} /> 
+                            {member?.name} 
                         </span>
-                        <span className="text-muted tabular-nums">{walk.time}</span>
+                        <span className="flex items-center gap-3"> 
+                            <span className="text-muted tabular-nums">{walk.time}</span> 
+                            <button
+                                onClick={() => {
+                                    if (confirming) { 
+                                        onDelete(walk.id); 
+                                        setConfirmId(null); 
+                                    } else { 
+                                        setConfirmId(walk.id); 
+                                    }
+                                }}
+                                aria-label={confirming ? "Bekräfta borttagning" : "Ta bort promenad"} 
+                                className="text-xs text-muted hover:text-fg transition-colors"
+                                style={confirming ? { color: "var(--coral)" } : undefined} 
+                            >
+                                {confirming ? "Ta bort?" : <Trash2 size={14} strokeWidth={1.5} />} 
+                            </button>
+                        </span>
                     </div>
                 );
             })}
