@@ -24,7 +24,7 @@ export default function App() {
 
       {tab === "calendar" && <CalendarPage walks={walks} />}
       {tab === "register" && <RegisterPage onSave={addWalk} />}
-      {tab === "stats" && <StatsPage/>}
+      {tab === "stats" && <StatsPage walks={walks} />}
 
       <BottomNav active={tab} onChange={setTab} />
     </main>
