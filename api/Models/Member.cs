@@ -1,6 +1,7 @@
 public class Member
 {
-    public string Id { get; set; } = "";
+    public int Id { get; set; }
+    public int FamilyId { get; set; }
     public string Name { get; set; } = "";
     public string Color { get; set; } = "";
 }
