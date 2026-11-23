@@ -41,7 +41,7 @@ export default function RegisterPage({ onSave }: Props) {
     const [time, setTime] = useState(nowTime());
   
     function save() {
-      onSave({ id: Date.now(), memberId: who, date, time });
+      onSave({ id: 0, memberId: who, date, time });
     }
     return (
         <section className="flex flex-col gap-8">
