@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
-import { members, type Walk } from "../data/mockData";
+import type{ Member, NewWalk } from "../types";
 
-type props = {
-    onSave: (walk: Walk) => void;
+type Props = {
+  members: Member[];
+  currentMemberId: number;
+    onSave: (walk: NewWalk) => void;
 };
 
 const dayParts = [
@@ -35,13 +37,13 @@ function partOfDay(time: string) {
     return "Natt";
 }
 
-export default function RegisterPage({ onSave }: Props) {
-    const [who, setWho] = useState(members[0].id);
+export default function RegisterPage({ members, currentMemberId,onSave }: Props) {
+    const [who, setWho] = useState(currentMemberId);
     const [date, setDate] = useState(todayKey());
     const [time, setTime] = useState(nowTime());
   
     function save() {
-      onSave({ id: 0, memberId: who, date, time });
+      onSave({ memberId: who, date, time });
     }
     return (
         <section className="flex flex-col gap-8">

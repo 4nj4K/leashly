@@ -1,24 +1,59 @@
-import type { Walk } from "./data/mockData";
+import type { Family, Member, NewWalk, Walk } from "./types";
 
 const API_URL = `http://${window.location.hostname}:5080/api`;
 
-export async function getWalks(): Promise<Walk[]> {
-  const res = await fetch(`${API_URL}/walks`);
-  if (!res.ok) throw new Error("Kunde inte hämta promenader");
+async function send<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!res.ok) {
+    const message = await res.json().catch(() => null);
+    throw new Error(typeof message === "string" ? message : "Något gick fel.");
+  }
+  if (res.status === 204) return undefined as T;
   return res.json();
 }
 
-export async function createWalk(walk: Walk): Promise<Walk> {
-  const res = await fetch(`${API_URL}/walks`, {
+export type FamilyResponse = { family: Family; member: Member };
+
+export function createFamily(familyName: string, name: string, color: string) {
+  return send<FamilyResponse>("/families", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ familyName, name, color }),
+  });
+}
+
+export function getInvite(code: string) {
+  return send<{ family: Family; members: Member[] }>(`/invites/${code}`);
+}
+
+export function getFamily(familyId: number) {
+    return send<Family>(`/families/${familyId}`);
+  }
+
+export function joinFamily(code: string, name: string, color: string) {
+  return send<FamilyResponse>(`/invites/${code}/members`, {
+    method: "POST",
+    body: JSON.stringify({ name, color }),
+  });
+}
+
+export function getMembers(familyId: number) {
+  return send<Member[]>(`/families/${familyId}/members`);
+}
+
+export function getWalks(familyId: number) {
+  return send<Walk[]>(`/families/${familyId}/walks`);
+}
+
+export function createWalk(familyId: number, walk: NewWalk) {
+  return send<Walk>(`/families/${familyId}/walks`, {
+    method: "POST",
     body: JSON.stringify(walk),
   });
-  if (!res.ok) throw new Error("Kunde inte spara promenaden");
-  return res.json();
 }
 
-export async function deleteWalk(id: number): Promise<void> {
-  const res = await fetch(`${API_URL}/walks/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Kunde inte ta bort promenaden");
+export function deleteWalk(familyId: number, id: number) {
+  return send<void>(`/families/${familyId}/walks/${id}`, { method: "DELETE" });
 }
