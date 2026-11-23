@@ -1,28 +1,44 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"; 
+import { Sun, Moon } from "lucide-react"; 
 
-type Theme = "light" | "dark";
+type Theme = "light" | "dark"; 
 
-function getStartTheme(): Theme {
-    const saved = localStorage.getItem("theme");
-    if (saved === "light" || saved === "dark") return saved;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+function getStartTheme(): Theme { 
+  const saved = localStorage.getItem("theme");
+  if (saved === "light" || saved === "dark") return saved; 
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 export default function ThemeToggle() {
-    const [theme, setTheme] = useState<Theme>(getStartTheme);
+  const [theme, setTheme] = useState<Theme>(getStartTheme); 
 
-    useEffect(() => {
-        document.documentElement.classList.toggle("dark", theme === "dark");
-        localStorage.setItem("theme", theme);
-    }, [theme]);
+  useEffect(() => { // körs varje gång temat ändras
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    localStorage.setItem("theme", theme); 
+  }, [theme]);
 
-    return (
-        <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            aria-label="byt mellan ljust och mörkt läge"
-            className="w-10 h-10 rounded-full border border-edge flex items-center justify-center text-muted hover:text-fg transition-colors"
-        >
-            {theme === "dark" ? "ljust" : "mörkt"}
-        </button>
-    );
+  const isDark = theme === "dark"; 
+
+  return (
+    <button
+      onClick={() => setTheme(isDark ? "light" : "dark")} 
+      aria-label={isDark ? "Byt till ljust läge" : "Byt till mörkt läge"} 
+      className="relative w-10 h-10 rounded-full border border-edge bg-fg/5 grid place-items-center text-muted hover:text-fg hover:bg-fg/10 transition-colors" 
+    >
+      <Sun
+        size={18} 
+        strokeWidth={1.5} 
+        className={`absolute transition-all duration-500 ${
+          isDark ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-50" 
+        }`}
+      />
+      <Moon
+        size={18} 
+        strokeWidth={1.5} 
+        className={`absolute transition-all duration-500 ${
+          isDark ? "opacity-0 rotate-90 scale-50" : "opacity-100 rotate-0 scale-100" 
+        }`}
+      />
+    </button>
+  );
 }
