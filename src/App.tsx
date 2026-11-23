@@ -1,22 +1,42 @@
-import { useState } from "react";
-import { walks as startWalks, type Walk } from "./data/mockData";
+import { useEffect, useState } from "react";
+import type { Walk } from "./data/mockData";
+import * as api from "./api";
 import ThemeToggle from "./components/ThemeToggle";
-import BottomNav, {type Tab} from "./components/BottomNav";
+import BottomNav, { type Tab } from "./components/BottomNav";
 import CalendarPage from "./pages/CalendarPage";
 import RegisterPage from "./pages/RegisterPage";
 import StatsPage from "./pages/StatsPage";
 
 export default function App() {
   const [tab, setTab] = useState<Tab>("calendar");
-  const [walks, setWalks] = useState<Walk[]>(startWalks);
+  const [walks, setWalks] = useState<Walk[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  function addWalk(walk: Walk) {
-    setWalks([...walks, walk]);
-    setTab("calendar");
+  useEffect(() => {
+    api.getWalks()
+      .then(setWalks)
+      .catch(() => setError("Kunde inte nå servern. Är backenden igång?"));
+  }, []);
+
+  async function addWalk(walk: Walk) {
+    try {
+      const saved = await api.createWalk(walk);
+      setWalks([...walks, saved]);
+      setTab("calendar");
+      setError(null);
+    } catch {
+      setError("Promenaden kunde inte sparas.");
+    }
   }
 
-  function deleteWalk(id:number) {
-    setWalks(walks.filter((w) => w.id !== id));
+  async function deleteWalk(id: number) {
+    try {
+      await api.deleteWalk(id);
+      setWalks(walks.filter((w) => w.id !== id));
+      setError(null);
+    } catch {
+      setError("Promenaden kunde inte tas bort.");
+    }
   }
 
   return (
@@ -26,7 +46,13 @@ export default function App() {
         <ThemeToggle />
       </header>
 
-      {tab === "calendar" && <CalendarPage walks={walks} onDelete={deleteWalk}/>}
+      {error && (
+        <p className="rounded-2xl border border-edge bg-fg/5 px-4 py-3 text-sm" style={{ color: "var(--coral)" }}>
+          {error}
+        </p>
+      )}
+
+      {tab === "calendar" && <CalendarPage walks={walks} onDelete={deleteWalk} />}
       {tab === "register" && <RegisterPage onSave={addWalk} />}
       {tab === "stats" && <StatsPage walks={walks} />}
 
