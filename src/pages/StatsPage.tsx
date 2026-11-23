@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Flame } from "lucide-react";
-import { members, type Walk } from "../data/mockData";
+import type { Member, Walk } from "../types";
 
 type Period = "week" | "month" | "year";
 
@@ -51,7 +51,7 @@ function getStreak(walks: Walk[]) {
     return streak;
 }
 
-export default function StatsPage({ walks }: { walks: Walk[] }) {
+export default function StatsPage({ walks, members }: { walks: Walk[]; members: Member[]  }) {
     const [period, setPeriod] = useState<Period>("week");
 
     const range = getRange(period);
