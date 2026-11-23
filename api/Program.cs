@@ -47,6 +47,12 @@ app.MapPost("/api/families", async (CreateFamilyRequest request, AppDb db) =>
     return Results.Ok(new { family, member });
 });
 
+app.MapGet("/api/families/{familyId}", async (int familyId, AppDb db) =>
+{
+    var family = await db.Families.FindAsync(familyId);
+    return family is null ? Results.NotFound() : Results.Ok(family);
+});
+
 app.MapGet("/api/invites/{code}", async (string code, AppDb db) =>
 {
     var family = await db.Families.FirstOrDefaultAsync(f => f.InviteCode == code.ToUpper());

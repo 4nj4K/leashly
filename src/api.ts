@@ -28,6 +28,10 @@ export function getInvite(code: string) {
   return send<{ family: Family; members: Member[] }>(`/invites/${code}`);
 }
 
+export function getFamily(familyId: number) {
+    return send<Family>(`/families/${familyId}`);
+  }
+
 export function joinFamily(code: string, name: string, color: string) {
   return send<FamilyResponse>(`/invites/${code}/members`, {
     method: "POST",
