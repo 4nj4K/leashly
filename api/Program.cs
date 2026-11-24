@@ -3,9 +3,24 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<AppDb>(options => options.UseSqlite("Data Source=leashly.db"));
-builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
-builder.WebHost.UseUrls("http://0.0.0.0:5080");
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5080";
+
+builder.Services.AddDbContext<AppDb>(options =>
+{
+    if (string.IsNullOrEmpty(databaseUrl)) options.UseSqlite("Data Source=leashly.db");
+    else options.UseNpgsql(ToNpgsqlConnectionString(databaseUrl));
+});
+
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
+{
+    if (string.IsNullOrEmpty(frontendUrl)) policy.AllowAnyOrigin();
+    else policy.WithOrigins(frontendUrl);
+    policy.AllowAnyHeader().AllowAnyMethod();
+}));
+
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 var app = builder.Build();
 app.UseCors();
@@ -22,6 +37,15 @@ string NewInviteCode()
 {
     const string letters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     return new string(Enumerable.Range(0, 6).Select(_ => letters[Random.Shared.Next(letters.Length)]).ToArray());
+}
+
+static string ToNpgsqlConnectionString(string url)
+{
+    if (!url.StartsWith("postgres")) return url;
+    var uri = new Uri(url);
+    var user = uri.UserInfo.Split(':', 2);
+    var dbPort = uri.Port > 0 ? uri.Port : 5432;
+    return $"Host={uri.Host};Port={dbPort};Database={uri.AbsolutePath.TrimStart('/')};Username={Uri.UnescapeDataString(user[0])};Password={Uri.UnescapeDataString(user[1])};SSL Mode=Require";
 }
 
 app.MapPost("/api/families", async (CreateFamilyRequest request, AppDb db) =>
