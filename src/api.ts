@@ -1,6 +1,6 @@
 import type { Family, Member, NewWalk, Walk } from "./types";
 
-const API_URL = `http://${window.location.hostname}:5080/api`;
+const API_URL = import.meta.env.VITE_API_URL ?? `http://${window.location.hostname}:5080/api`;
 
 async function send<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
